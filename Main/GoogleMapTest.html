@@ -7,6 +7,9 @@
  html { height : 100%; }
  body { height : 100%; margin: 3% 0% 0% 1.5%; padding: 0; }
  #map_canvas { height : 100%; }
+
+ input[type="text"] {width:150px;}
+
 </style>
 <script type = "text/javascript" src = "http://maps.googleapis.com/maps/api/js?sensor=true">
 </script>
@@ -18,7 +21,6 @@ var marker =[];
 var geocoder;
 var geocodemarker = [];
 
-
 var GreenIcon = new google.maps.MarkerImage(
    "http://labs.google.com/ridefinder/images/mm_20_green.png",
    new google.maps.Size(12, 20),
@@ -29,6 +31,7 @@ var GreenIcon = new google.maps.MarkerImage(
 function initialize(){
 
  var latlng = new google.maps.LatLng(37.5240220, 126.9265940);
+
  var myOptions = {
   zoom: 10,
   center:latlng,
@@ -38,15 +41,15 @@ function initialize(){
  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
  geocoder =  new google.maps.Geocoder();
  google.maps.event.addListener(map, 'click', codeCoordinate);
-        /*아랫글에서 설명한 event를 이용 지도를 'click'하면 codeCoordinate함수를 실행합니다.
-           codeCoordinate함수는 클릭한 지점의 좌표를 가지고 주소를 찾는 함수입니다. */
+
+ document.getElementById("addr1").value = "경기도 수원시 장안구 조원동 737-2";
 }
 
 function Setmarker(latLng) {
 
   if (marker.length > 0)
-        {
-  marker[0].setMap(null);
+  {
+    marker[0].setMap(null);
   }
 // marker.length는 marker라는 배열의 원소의 개수입니다.
 // 만약 이 개수가 0이 아니라면 marker를 map에 표시되지 않게 합니다.
@@ -72,6 +75,8 @@ function Setmarker(latLng) {
 //입력 받은 주소를 지오코딩 요청하고 결과를 마커로 지도에 표시합니다.
 function codeAddress(event) {
 
+  //이 부분도 위와 같이 주소를 입력할 때 표시되는 marker가 매번 새로 나타나게 하기 위함입니
+  //다.
  if (geocodemarker.length > 0)
  {
   for (var i=0;i<geocodemarker.length ;i++ )
@@ -81,36 +86,43 @@ function codeAddress(event) {
   geocodemarker =[];
   geocodemarker.length = 0;
  }
-        //이 부분도 위와 같이 주소를 입력할 때 표시되는 marker가 매번 새로 나타나게 하기 위함입니
-        //다.
 
+ //아래의 주소 입력창에서 받은 정보를 address 변수에 저장합니다.
  var address = document.getElementById("addr1").value;
-        //아래의 주소 입력창에서 받은 정보를 address 변수에 저장합니다.
 
-        //지오코딩하는 부분입니다.
  geocoder.geocode( {'address': address}, function(results, status) {
+
+  var strResult = "";
+
   if (status == google.maps.GeocoderStatus.OK)  //Geocoding이 성공적이라면,
   {
    alert(results.length + "개의 결과를 찾았습니다.");
-   //결과의 개수를 표시하는 창을 띄웁니다. alert 함수는 알림창 함수입니다.
+
    for(var i=0;i<results.length;i++)
    {
     map.setCenter(results[i].geometry.location);
+
     geocodemarker.push(new google.maps.Marker({
      center: results[i].geometry.location,
      position: results[i].geometry.location,
      icon: GreenIcon,
      map: map
     }));
+
+    var lat = results[i].geometry.location.lat();
+    var lng = results[i].geometry.location.lng();
+
+    strResult = strResult + "<br/>" + i + ". lat: " + lat + " lng: " + lng;
    }
-                        //결과가 여러 개일 수 있기 때문에 모든 결과를 지도에 marker에 표시합니다.
+
+   document.getElementById("searchResult").innerText = strResult;
   }
   else
   {
     alert("Geocode was not successful for the following reason: " + status);
   }
  });
-}
+}//end of function
 
 
 //클릭 이벤트 발생 시 그 좌표를 주소로 변환하는 함수입니다.
@@ -139,7 +151,12 @@ function codeCoordinate(event) {
  <p> 주소 : <input type="text" size="100" id="addr1" name="address"/>
    <input name="submit" type="submit" value="Search" onclick='codeAddress(); return false;' />
  </p>
- <br>
+
+ <div id="inputArea">
+   <!-- lat : <input type="text" id="lat" />
+   lng : <input type="text" id="lng" /> -->
+   <p id="searchResult">결과표시</p>
+ </div>
 
 </body>
 </html>
